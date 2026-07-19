@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.models.contact import Contact
 from app.models.interaction import Interaction
+from app.services.user_settings import DEFAULT_SUGGESTION_PREFS
 
 logger = logging.getLogger(__name__)
 
@@ -212,6 +213,7 @@ def analyze_conversation_tone(interactions: list[Interaction]) -> str:
     casual_indicators = [
         "hey", "hi", "lol", "haha", "!", "btw", "fyi", "thx", "thanks!",
         "cheers", "awesome", "cool", "great!", "yeah", "yep",
+        "привет", "хай", "ага", "ок", "круто", "класс", "супер", "))", "))",
     ]
 
     casual_score = 0
@@ -240,6 +242,7 @@ async def compose_followup_message(
     db: AsyncSession,
     revival_context: bool = False,
     user: Any = None,
+    language: str = "en",
 ) -> str:
     """Compose a personalised follow-up message using Anthropic Claude.
 
@@ -254,6 +257,13 @@ async def compose_followup_message(
         A short, natural draft message (2-3 sentences).
     """
     import anthropic
+
+    # ------------------------------------------------------------------
+    # Resolve preferred language from user settings
+    # ------------------------------------------------------------------
+    if user:
+        _prefs = (getattr(user, "priority_settings", None) or {}).get("suggestion_prefs", {})
+        language = _prefs.get("language") or DEFAULT_SUGGESTION_PREFS["language"]
 
     # ------------------------------------------------------------------
     # Fetch contact profile
@@ -377,6 +387,7 @@ LAST CONVERSATION EXCERPT:
 {last_convo_summary}
 
 INSTRUCTIONS:
+- Write the message in {language.upper()} language
 - Write 2-3 sentences max
 - Be warm and genuine, not salesy
 - Reference the reason naturally{twitter_instruction}
@@ -388,6 +399,8 @@ INSTRUCTIONS:
 Message:"""
 
     if not settings.ANTHROPIC_API_KEY:
+        if language == "ru":
+            return f"Привет, {first_name}! Как дела? Давно не общались."
         return f"Hey {first_name}, just wanted to check in. How have things been going?"
 
     client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
@@ -406,7 +419,10 @@ Message:"""
             contact_id,
         )
         # Fallback to a simple template-based message
-        draft = f"Hey {first_name}, just wanted to check in. How have things been going?"
+        if language == "ru":
+            draft = f"Привет, {first_name}! Как дела? Давно не общались."
+        else:
+            draft = f"Hey {first_name}, just wanted to check in. How have things been going?"
 
     draft = _strip_dashes(draft)
 

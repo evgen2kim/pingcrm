@@ -798,6 +798,63 @@ async def test_compose_passes_user_to_cached_tweets(mock_db: AsyncMock):
     assert mock_fetch.await_args.kwargs["user"] is sentinel_user
 
 
+# ---------------------------------------------------------------------------
+# Language resolution — defaults to Russian when unset
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_compose_defaults_to_russian_when_no_language_pref(mock_db: AsyncMock):
+    """A user who never touched Settings must still get Russian, not English."""
+    contact = _make_contact()
+    _configure_db(mock_db, contact, [])
+    user = MagicMock(priority_settings=None)
+
+    mock_client = MagicMock()
+    mock_client.messages.create = AsyncMock(return_value=_mock_anthropic_response("Привет!"))
+
+    with patch("app.services.message_composer.settings") as mock_settings, \
+         patch("anthropic.AsyncAnthropic", return_value=mock_client):
+        mock_settings.ANTHROPIC_API_KEY = "sk-ant-test-key"
+
+        await compose_followup_message(
+            contact_id=contact.id,
+            trigger_type="time_based",
+            event_summary=None,
+            db=mock_db,
+            user=user,
+        )
+
+    prompt = mock_client.messages.create.call_args.kwargs["messages"][0]["content"]
+    assert "Write the message in RU language" in prompt
+
+
+@pytest.mark.asyncio
+async def test_compose_respects_explicit_english_language_pref(mock_db: AsyncMock):
+    """An explicit 'en' preference overrides the Russian default."""
+    contact = _make_contact()
+    _configure_db(mock_db, contact, [])
+    user = MagicMock(priority_settings={"suggestion_prefs": {"language": "en"}})
+
+    mock_client = MagicMock()
+    mock_client.messages.create = AsyncMock(return_value=_mock_anthropic_response("Hi!"))
+
+    with patch("app.services.message_composer.settings") as mock_settings, \
+         patch("anthropic.AsyncAnthropic", return_value=mock_client):
+        mock_settings.ANTHROPIC_API_KEY = "sk-ant-test-key"
+
+        await compose_followup_message(
+            contact_id=contact.id,
+            trigger_type="time_based",
+            event_summary=None,
+            db=mock_db,
+            user=user,
+        )
+
+    prompt = mock_client.messages.create.call_args.kwargs["messages"][0]["content"]
+    assert "Write the message in EN language" in prompt
+
+
 @pytest.mark.asyncio
 async def test_get_cached_tweets_warns_when_user_missing(caplog):
     """Cache miss with user=None must log a warning so the silent skip is visible."""

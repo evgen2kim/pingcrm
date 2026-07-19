@@ -31,6 +31,7 @@ export function FollowUpRulesTab() {
   const [birthdayReminders, setBirthdayReminders] = useState(true);
   const [preferredChannel, setPreferredChannel] = useState("auto");
   const [dormancyDays, setDormancyDays] = useState("365");
+  const [language, setLanguage] = useState("ru");
 
   // Load suggestion prefs
   useEffect(() => {
@@ -44,6 +45,7 @@ export function FollowUpRulesTab() {
           setBirthdayReminders(prefs.birthday_reminders ?? true);
           setPreferredChannel(prefs.preferred_channel ?? "auto");
           setDormancyDays(String(prefs.dormancy_threshold_days ?? 365));
+          setLanguage(prefs.language ?? "ru");
         }
       } catch (err) {
         console.error("load suggestion prefs failed", err);
@@ -291,6 +293,21 @@ export function FollowUpRulesTab() {
               <option value="email">Email</option>
               <option value="telegram">Telegram</option>
               <option value="twitter">Twitter</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-stone-700 dark:text-stone-300">Message language</p>
+              <p className="text-xs text-stone-400 dark:text-stone-500">Language for AI-generated follow-up messages</p>
+            </div>
+            <select
+              value={language}
+              onChange={(e) => { setLanguage(e.target.value); void saveSuggestionPref({ language: e.target.value }); }}
+              className="w-full sm:w-auto text-sm border border-stone-200 dark:border-stone-700 rounded-lg px-3 py-1.5 text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-900 focus:outline-none focus:ring-2 focus:ring-teal-400"
+            >
+              <option value="ru">Русский</option>
+              <option value="en">English</option>
             </select>
           </div>
         </div>

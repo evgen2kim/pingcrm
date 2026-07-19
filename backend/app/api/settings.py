@@ -9,7 +9,11 @@ from app.core.database import get_db
 from app.models.user import User
 from app.schemas.responses import Envelope, McpKeyData, McpKeyRevokedData, McpKeyStatusData
 from mcp_server.auth import generate_api_key, hash_api_key
-from app.services.user_settings import DEFAULT_PRIORITY_SETTINGS, get_priority_settings
+from app.services.user_settings import (
+    DEFAULT_PRIORITY_SETTINGS,
+    DEFAULT_SUGGESTION_PREFS,
+    get_priority_settings,
+)
 
 router = APIRouter(prefix="/api/v1/settings", tags=["settings"])
 
@@ -65,6 +69,7 @@ class SuggestionPrefsInput(BaseModel):
     # longer than this falls through to Pool B (revival). Was hardcoded 365
     # in followup_engine.DORMANCY_THRESHOLD_DAYS; now per-user.
     dormancy_threshold_days: int | None = Field(default=None, ge=30, le=3650)
+    language: str | None = Field(default=None, pattern="^(en|ru)$")
 
 
 class SuggestionPrefsData(BaseModel):
@@ -73,15 +78,7 @@ class SuggestionPrefsData(BaseModel):
     birthday_reminders: bool
     preferred_channel: str
     dormancy_threshold_days: int
-
-
-_DEFAULT_SUGGESTION_PREFS = {
-    "max_suggestions": 10,
-    "include_dormant": True,
-    "birthday_reminders": True,
-    "preferred_channel": "auto",
-    "dormancy_threshold_days": 365,
-}
+    language: str
 
 
 @router.get("/suggestions", response_model=Envelope[SuggestionPrefsData])
@@ -89,7 +86,7 @@ async def get_suggestion_prefs(
     current_user: User = Depends(get_current_user),
 ) -> Envelope[SuggestionPrefsData]:
     stored = (current_user.priority_settings or {}).get("suggestion_prefs", {})
-    merged = {**_DEFAULT_SUGGESTION_PREFS, **stored}
+    merged = {**DEFAULT_SUGGESTION_PREFS, **stored}
     return {"data": merged, "error": None}
 
 
@@ -105,7 +102,7 @@ async def update_suggestion_prefs(
     settings["suggestion_prefs"] = prefs
     current_user.priority_settings = settings
     await db.flush()
-    merged = {**_DEFAULT_SUGGESTION_PREFS, **prefs}
+    merged = {**DEFAULT_SUGGESTION_PREFS, **prefs}
     return {"data": merged, "error": None}
 
 

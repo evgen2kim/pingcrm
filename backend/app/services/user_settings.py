@@ -5,6 +5,15 @@ from app.models.user import User
 
 DEFAULT_PRIORITY_SETTINGS: dict[str, int] = {"high": 30, "medium": 60, "low": 180}
 
+DEFAULT_SUGGESTION_PREFS: dict = {
+    "max_suggestions": 10,
+    "include_dormant": True,
+    "birthday_reminders": True,
+    "preferred_channel": "auto",
+    "dormancy_threshold_days": 365,
+    "language": "ru",
+}
+
 
 def get_priority_settings(user: User) -> dict:
     """Return priority settings with defaults fallback."""
