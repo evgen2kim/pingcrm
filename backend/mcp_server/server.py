@@ -66,11 +66,14 @@ async def run_stdio(user_email: str | None = None):
 
 
 async def run_sse(port: int):
-    """Run in SSE mode (remote HTTP — standalone, no auth)."""
+    """Run in SSE mode (remote HTTP — API-key auth)."""
     import uvicorn
+    from mcp_server.asgi import MCPAuthMiddleware
+
     _register_tools()
-    logger.info("Starting PingCRM MCP server (SSE mode on port %d)", port)
-    config = uvicorn.Config(mcp_app.sse_app(), host="0.0.0.0", port=port)
+    sse_app = MCPAuthMiddleware(mcp_app.sse_app())
+    logger.info("Starting PingCRM MCP server (SSE mode on port %d, auth enabled)", port)
+    config = uvicorn.Config(sse_app, host="0.0.0.0", port=port)
     server = uvicorn.Server(config)
     await server.serve()
 
