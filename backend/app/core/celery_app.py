@@ -92,5 +92,10 @@ celery_app.conf.update(
             "task": "app.services.tasks.check_for_updates",
             "schedule": crontab(minute=15, hour="*/6"),
         },
+        # Send birthday push notifications daily at 07:00 UTC
+        "send-birthday-push-daily": {
+            "task": "app.services.tasks.send_birthday_push_notifications",
+            "schedule": crontab(minute=0, hour=7),
+        },
     },
 )

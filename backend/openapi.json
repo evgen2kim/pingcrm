@@ -12672,6 +12672,10 @@
             "type": "boolean",
             "title": "Birthday Reminders"
           },
+          "pushbullet_enabled": {
+            "type": "boolean",
+            "title": "Pushbullet Enabled"
+          },
           "preferred_channel": {
             "type": "string",
             "title": "Preferred Channel"
@@ -12690,6 +12694,7 @@
           "max_suggestions",
           "include_dormant",
           "birthday_reminders",
+          "pushbullet_enabled",
           "preferred_channel",
           "dormancy_threshold_days",
           "language"
@@ -12732,6 +12737,17 @@
               }
             ],
             "title": "Birthday Reminders"
+          },
+          "pushbullet_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pushbullet Enabled"
           },
           "preferred_channel": {
             "anyOf": [

@@ -29,6 +29,7 @@ export function FollowUpRulesTab() {
   const [maxBatch, setMaxBatch] = useState("10");
   const [dormantRevival, setDormantRevival] = useState(true);
   const [birthdayReminders, setBirthdayReminders] = useState(true);
+  const [pushbulletEnabled, setPushbulletEnabled] = useState(false);
   const [preferredChannel, setPreferredChannel] = useState("auto");
   const [dormancyDays, setDormancyDays] = useState("365");
   const [language, setLanguage] = useState("ru");
@@ -43,6 +44,7 @@ export function FollowUpRulesTab() {
           setMaxBatch(String(prefs.max_suggestions ?? 10));
           setDormantRevival(prefs.include_dormant ?? true);
           setBirthdayReminders(prefs.birthday_reminders ?? true);
+          setPushbulletEnabled(prefs.pushbullet_enabled ?? false);
           setPreferredChannel(prefs.preferred_channel ?? "auto");
           setDormancyDays(String(prefs.dormancy_threshold_days ?? 365));
           setLanguage(prefs.language ?? "ru");
@@ -277,6 +279,16 @@ export function FollowUpRulesTab() {
               </p>
             </div>
             <Toggle checked={birthdayReminders} onChange={(v) => { setBirthdayReminders(v); void saveSuggestionPref({ birthday_reminders: v }); }} />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-stone-700 dark:text-stone-300">Pushbullet уведомления</p>
+              <p className="text-xs text-stone-400 dark:text-stone-500">
+                Отправлять push-уведомления о днях рождения через Pushbullet
+              </p>
+            </div>
+            <Toggle checked={pushbulletEnabled} onChange={(v) => { setPushbulletEnabled(v); void saveSuggestionPref({ pushbullet_enabled: v }); }} />
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

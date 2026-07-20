@@ -52,6 +52,7 @@ async def _collect_pool_a_candidates(
     queued_contact_ids: set[uuid.UUID],
     priority_settings: dict | None = None,
     dormancy_days: int = DORMANCY_THRESHOLD_DAYS,
+    birthday_reminders: bool = True,
 ) -> dict[uuid.UUID, _Candidate]:
     """Collect candidates from triggers 1-4 for active (non-dormant) contacts."""
     candidates: dict[uuid.UUID, _Candidate] = {}
@@ -147,28 +148,29 @@ async def _collect_pool_a_candidates(
                 )
 
     # Trigger 4: Birthday
-    today = now.date()
-    upcoming_mmdd = {(today + timedelta(days=d)).strftime("%m-%d") for d in range(4)}
-    birthday_result = await db.execute(
-        select(Contact).where(
-            Contact.user_id == user_id,
-            _not_2nd_tier,
-            _has_channel,
-            _not_archived,
-            Contact.birthday.isnot(None),
-        )
-    )
-    for contact in birthday_result.scalars().all():
-        if contact.id in queued_contact_ids:
-            continue
-        bday = contact.birthday.strip()
-        mmdd = bday[-5:]
-        if mmdd not in upcoming_mmdd:
-            continue
-        if contact.id not in candidates or 1500.0 > candidates[contact.id].priority:
-            candidates[contact.id] = _Candidate(
-                contact=contact, trigger_type="birthday", priority=1500.0, pool="A",
+    if birthday_reminders:
+        today = now.date()
+        upcoming_mmdd = {(today + timedelta(days=d)).strftime("%m-%d") for d in range(4)}
+        birthday_result = await db.execute(
+            select(Contact).where(
+                Contact.user_id == user_id,
+                _not_2nd_tier,
+                _has_channel,
+                _not_archived,
+                Contact.birthday.isnot(None),
             )
+        )
+        for contact in birthday_result.scalars().all():
+            if contact.id in queued_contact_ids:
+                continue
+            bday = contact.birthday.strip()
+            mmdd = bday[-5:]
+            if mmdd not in upcoming_mmdd:
+                continue
+            if contact.id not in candidates or 1500.0 > candidates[contact.id].priority:
+                candidates[contact.id] = _Candidate(
+                    contact=contact, trigger_type="birthday", priority=1500.0, pool="A",
+                )
 
     return candidates
 

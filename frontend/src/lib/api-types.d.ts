@@ -4140,6 +4140,8 @@ export interface components {
             include_dormant: boolean;
             /** Birthday Reminders */
             birthday_reminders: boolean;
+            /** Pushbullet Enabled */
+            pushbullet_enabled: boolean;
             /** Preferred Channel */
             preferred_channel: string;
             /** Dormancy Threshold Days */
@@ -4155,6 +4157,8 @@ export interface components {
             include_dormant?: boolean | null;
             /** Birthday Reminders */
             birthday_reminders?: boolean | null;
+            /** Pushbullet Enabled */
+            pushbullet_enabled?: boolean | null;
             /** Preferred Channel */
             preferred_channel?: string | null;
             /** Dormancy Threshold Days */

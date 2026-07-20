@@ -64,6 +64,7 @@ class SuggestionPrefsInput(BaseModel):
     max_suggestions: int | None = Field(default=None, ge=5, le=20)
     include_dormant: bool | None = None
     birthday_reminders: bool | None = None
+    pushbullet_enabled: bool | None = None
     preferred_channel: str | None = Field(default=None, pattern="^(auto|email|telegram|twitter)$")
     # Upper bound (in days) for Pool A "active" contacts. Anything dormant
     # longer than this falls through to Pool B (revival). Was hardcoded 365
@@ -76,6 +77,7 @@ class SuggestionPrefsData(BaseModel):
     max_suggestions: int
     include_dormant: bool
     birthday_reminders: bool
+    pushbullet_enabled: bool
     preferred_channel: str
     dormancy_threshold_days: int
     language: str

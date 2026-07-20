@@ -9,6 +9,7 @@ DEFAULT_SUGGESTION_PREFS: dict = {
     "max_suggestions": 10,
     "include_dormant": True,
     "birthday_reminders": True,
+    "pushbullet_enabled": False,
     "preferred_channel": "auto",
     "dormancy_threshold_days": 365,
     "language": "ru",

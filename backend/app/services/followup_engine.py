@@ -299,8 +299,10 @@ async def _generate_suggestions_inner(
 
     _prefs = settings.get("suggestion_prefs", {})
     dormancy_days = int(_prefs.get("dormancy_threshold_days", DORMANCY_THRESHOLD_DAYS))
+    birthday_reminders = _prefs.get("birthday_reminders", True)
     pool_a = await _collect_pool_a_candidates(
         user_id, db, now, queued_contact_ids, priority_settings, dormancy_days=dormancy_days,
+        birthday_reminders=birthday_reminders,
     )
     if _prefs.get("include_dormant", True):
         pool_b = await _collect_pool_b_candidates(
